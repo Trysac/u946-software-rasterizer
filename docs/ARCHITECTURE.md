@@ -1,30 +1,10 @@
 # Architecture
 
-## Purpose
+`software-rasterizer` is a C++20 CPU rendering library (`trysac::software_rasterizer`) without external dependencies.
 
-`software-rasterizer` is a small, dependency-free C++20 library: Rasterize triangles on the CPU with a top-left fill rule, z-buffer, perspective-correct texturing, Lambert lighting, OBJ loading and tolerance-based image comparison
-
-## Shape
-
-```text
-caller code --> include/trysac/software_rasterizer/*.hpp (namespace trysac::software_rasterizer)
-                    |
-                    +-- src/*.cpp: pure functions; no I/O, no global mutable state
-                    +-- anonymous-namespace helpers and private headers under src/ (optional)
-```
-
-- **Public API**: every declaration of the public headers under `include/`. Code in `src/` and in
-  anonymous namespaces may change without a major version.
-- **Errors**: invalid input throws a `std::invalid_argument` subclass of the library (such as
-  `BlankInputError`) documented with `@throws`. The library never prints or exits.
-- **Side effects**: none. If a feature needs I/O, accept a `std::istream&`, a `std::span` or a small
-  interface instead of opening resources, and record the choice in an ADR.
-
-## Quality contract
-
-`scripts/check.cmake` is the single definition of the gates; `fabrica.json` tells the factory and
-CI how to run it. See [TESTING.md](TESTING.md).
-
-## Decisions
-
-Architecture decisions are recorded in [decisions/](decisions/) as numbered ADRs.
+1. **Math (`Vec2`, `Vec3`, `Vec4`, `Mat4`)**: Column-major 4x4 float matrices.
+2. **Target (`Rgba8`, `Image`)**: Bounded 2D RGBA8 storage.
+3. **Geometry (`Mesh`, `load_obj`)**: Parses Wavefront OBJ (`v`, `vt`, `vn`, `f`) and performs fan-triangulation.
+4. **Rasterization Pipeline (`Renderer`, `DrawState`)**: Homogeneous clipping, viewport transformation, double-precision edge functions (top-left rule), less-than depth testing, perspective-correct 1/w interpolation, and Lambertian lighting.
+5. **I/O (`write_ppm`, `read_ppm`)**: Binary P6 PPM serialization.
+6. **Comparison (`compare`)**: Tolerance-based image equality check.

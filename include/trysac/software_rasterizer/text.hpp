@@ -6,6 +6,8 @@
 #include <string>
 #include <string_view>
 
+#include "trysac/software_rasterizer/rasterizer.hpp"
+
 /// @brief The public API of this library.
 namespace trysac::software_rasterizer {
 
