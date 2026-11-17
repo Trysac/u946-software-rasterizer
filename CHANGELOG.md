@@ -9,4 +9,5 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- Added deterministic CPU triangle rasterizer (`Renderer`, `Image`, `Mesh`, `DrawState`, `Mat4`), Wavefront OBJ loader (`load_obj`), binary P6 PPM I/O (`write_ppm`, `read_ppm`), and tolerance-based image comparison (`compare`).
 - Initial project structure from the factory utility template.

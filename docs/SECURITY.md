@@ -1,28 +1,8 @@
-# Security notes
+# Security & Input Limits
 
-## Threat model
+All functions validate inputs and throw `trysac::software_rasterizer::RasterError` with a machine-readable `code()`.
 
-`software-rasterizer` is a pure library without I/O. The main risks are:
-
-- **Supply chain**: a compromised dependency, vcpkg port or CI action. Mitigation: standard
-  library only, every vcpkg port pinned by `vcpkg.json`'s `builtin-baseline` and each direct
-  dependency by an exact override, OSV advisories over the upstream release of every installed
-  port and OSV-Scanner over the repository in the gates, Dependabot weekly updates, actions
-  pinned by commit SHA, minimal workflow permissions.
-- **Leaked secrets**: tokens committed by mistake. Mitigation: `gitleaks` runs in the local gates
-  and in CI; `.env` files are git-ignored.
-- **Memory and injection bugs**: buffer overflows, format strings, command injection.
-  Mitigation: clang-tidy (bugprone, cert, clang-analyzer and cppcoreguidelines checks) and the
-  compiler with warnings as errors, and the factory's Semgrep rules
-  (`.semgrep/factory-rules.yml`, `nosemgrep` ignored): no `system`/`popen`, no unbounded
-  `strcpy`/`sprintf`, no non-literal format strings; fix the code instead of silencing it.
-- **Untrusted input**: callers may pass hostile strings. Mitigation: validate input and throw
-  explicit, documented exceptions; use `std::string`, `std::string_view` and bounds-checked
-  access instead of raw buffers.
-
-## Publishing
-
-Releases are git tags; publishing to a vcpkg registry or ConanCenter needs a maintainer account
-and a reviewed port, which are never stored in the repository.
-
-To report a vulnerability, see [SECURITY.md](../SECURITY.md).
+- **Dimensions**: `Image` and `Renderer` width/height are limited to 1..8192. Exceeding this throws `invalid_size`.
+- **OBJ Loading**: `load_obj` enforces `ObjLimits` (defaulting to 64 MiB input, 1M vertices, 2M triangles). Exceeding these throws `input_too_large` or `too_large`. Malformed syntax throws `malformed` with the 1-based line number.
+- **PPM Decoding**: `read_ppm` enforces a 256 MiB input limit. Validates the P6 magic header and 255 maxval. Mismatches throw `unsupported_format`, `malformed`, or `input_too_large`.
+- **Access**: Pixel and depth accessors perform bounds checks and throw `invalid_index`.
